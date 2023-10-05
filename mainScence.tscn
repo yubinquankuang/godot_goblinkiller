@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://ilm31254xxkp"]
+
+[ext_resource type="PackedScene" uid="uid://bc6fx28823o7y" path="res://BigMap.tscn" id="1_pgrk4"]
+[ext_resource type="PackedScene" uid="uid://i5n5hr4r7ah5" path="res://player.tscn" id="2_qthd3"]
+
+[node name="mainScence" type="Node2D"]
+
+[node name="BigMap" parent="." instance=ExtResource("1_pgrk4")]
+
+[node name="Node2D" parent="." instance=ExtResource("2_qthd3")]

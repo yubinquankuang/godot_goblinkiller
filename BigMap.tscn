@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bc6fx28823o7y"]
+
+[node name="BigMap" type="Node2D"]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PackedVector2Array(2, 166, -15, 305, 32, 466, 459, 477, 281, 352, 406, 261, 567, 333, 519, 457, 688, 457, 823, 378, 1119, 243, 1054, 71, 814, 223, 646, 249, 448, 195, 266, 252, 200, 372, 106, 329, 84, 162)
