@@ -11,8 +11,19 @@ config_version=5
 [application]
 
 config/name="animal_age"
-config/features=PackedStringArray("4.3", "GL Compatibility")
+run/main_scene="uid://kmumoy7jeyfg"
+config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Setting="*res://script/setting.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=720
+window/subwindows/embed_subwindows=false
 
 [rendering]
 

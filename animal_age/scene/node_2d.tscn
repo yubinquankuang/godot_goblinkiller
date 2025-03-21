@@ -1,0 +1,27 @@
+[gd_scene load_steps=4 format=3 uid="uid://q1ta2ejn0f1a"]
+
+[ext_resource type="Script" uid="uid://cugrpsvt4anvk" path="res://assests/character_body_2d.gd" id="1_v47md"]
+[ext_resource type="Texture2D" uid="uid://dtjjgdejcvaey" path="res://assests/pic/npc/Imperial_Chancellor_Fox.png" id="1_yw7dw"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_svmqp"]
+size = Vector2(58, 62)
+
+[node name="Node2D" type="Node2D"]
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+
+[node name="CharacterBody2D" type="CharacterBody2D" parent="."]
+script = ExtResource("1_v47md")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="CharacterBody2D"]
+shape = SubResource("RectangleShape2D_svmqp")
+
+[node name="Sprite2D" type="Sprite2D" parent="CharacterBody2D"]
+texture = ExtResource("1_yw7dw")
+
+[node name="Camera2D" type="Camera2D" parent="CharacterBody2D"]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PackedVector2Array(-36, 37, -88, 71, -60, 135, 120, 137, 298, 137, 608, 151, 630, 100, 652, 26, 508, 66, 280, 73, 124, 86)
