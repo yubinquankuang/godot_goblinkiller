@@ -12,11 +12,14 @@ pic_green = 0.4
 pic_blue = 0.8
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+modulate = Color(0.601048, 0.230328, 0.302982, 1)
+self_modulate = Color(0.904269, 0.499391, 0.462383, 1)
 texture = ExtResource("1_my2nb")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("RectangleShape2D_my2nb")
 
 [node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(3, 3)
 
 [node name="Line2D" type="Line2D" parent="."]

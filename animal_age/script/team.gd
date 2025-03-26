@@ -1,6 +1,8 @@
 extends CharacterBody2D
 
-const SPEED = 16
+signal path_complated(index)
+
+const SPEED = 32
 const JUMP_VELOCITY = -400.0
 
 var target_position
@@ -14,6 +16,7 @@ var current_point_index = 0
 @export_range(0, 1, 0.1) var pic_alpha: float = 1.0
 
 @onready var tilemap = $"../TileMapLayer2"
+@onready var map = $".."
 @onready var pic: Sprite2D = $Sprite2D
 
 func _ready():
@@ -23,6 +26,7 @@ func _ready():
 	#path_line.z_index = 10  # 设置较高的 z_index 确保在其他节点之上渲染
 	#get_tree().root.add_child(path_line)
 	print("Line2D node created and added to the scene root.")
+	connect("path_complated", Callable(map, "_on_path_complated"))
 
 func _process(delta):
 	#if path_line and str(path_line.get_path()) != "":
@@ -48,7 +52,9 @@ func _physics_process(delta):
 		if current_point_index < path.size():
 			var next_point = path[current_point_index]
 			var direction = (next_point - position).normalized()
-			if position.distance_to(next_point) > 2:
+			#print("current points is ", path[current_point_index], " following is ",following_path, " index is ", current_point_index,"distance ",next_point - position)
+			emit_signal("path_complated", current_point_index)
+			if position.distance_to(next_point) > 5:
 				velocity = direction * unit_speed
 			else:
 				current_point_index += 1
@@ -56,11 +62,10 @@ func _physics_process(delta):
 					following_path = false
 					velocity = Vector2.ZERO
 					path = []
-					#path_line.points = []
 					current_point_index = 0
 				else:
-					#path_line.points = path.slice(current_point_index)
-					#print("Current path line points in _physics_process:", path_line.points)
+	
+					
 					print("")
 		else:
 			following_path = false
@@ -70,7 +75,7 @@ func _physics_process(delta):
 			current_point_index = 0
 	elif target_position:
 		var direction = (target_position - position).normalized()
-		if position.distance_to(target_position) > 2:
+		if position.distance_to(target_position) > 5:
 			velocity = direction * unit_speed
 		else:
 			target_position = null
@@ -80,6 +85,7 @@ func _physics_process(delta):
 
 # 处理接收到的路径信号的方法
 func _on_path_selected(new_path):
+	print("receive path:  ",new_path)
 	path = new_path
 	following_path = true
 	current_point_index = 0

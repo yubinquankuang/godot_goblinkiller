@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=4 uid="uid://kmumoy7jeyfg"]
+[gd_scene load_steps=7 format=4 uid="uid://kmumoy7jeyfg"]
 
-[ext_resource type="Script" uid="uid://dgepk34qeu18l" path="res://script/war_scence.gd" id="1_14h3t"]
 [ext_resource type="Texture2D" uid="uid://w3wsli13qwhk" path="res://assests/pic/map/terrain.png" id="1_r00jo"]
+[ext_resource type="Script" uid="uid://dgepk34qeu18l" path="res://script/war_scence.gd" id="1_ymmk5"]
 [ext_resource type="PackedScene" uid="uid://ddcirfdimmnjy" path="res://scene/team.tscn" id="3_ymmk5"]
+[ext_resource type="PackedScene" uid="uid://b5ub6bgw7ytal" path="res://scene/selection_rect.tscn" id="4_ymmk5"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_x5bcr"]
 texture = ExtResource("1_r00jo")
@@ -46,7 +47,7 @@ custom_data_layer_1/type = 2
 sources/1 = SubResource("TileSetAtlasSource_x5bcr")
 
 [node name="WarScence" type="Node2D"]
-script = ExtResource("1_14h3t")
+script = ExtResource("1_ymmk5")
 
 [node name="Team" parent="." instance=ExtResource("3_ymmk5")]
 light_mask = 5
@@ -63,3 +64,8 @@ tile_map_data = PackedByteArray("AAD0/woAAQAAAAIAAAD0/wwAAQACAAIAAAD0/wsAAQACAAI
 tile_set = SubResource("TileSet_14h3t")
 
 [node name="Line2D" type="Line2D" parent="."]
+default_color = Color(0.82, 1, 0.3, 1)
+
+[node name="PointContainer" type="Node2D" parent="."]
+
+[node name="SelectionRect" parent="." instance=ExtResource("4_ymmk5")]
