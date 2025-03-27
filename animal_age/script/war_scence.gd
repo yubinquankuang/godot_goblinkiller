@@ -22,7 +22,6 @@ const TIME_INTERVAL = 0.1 # 时间间隔
 const ANGLE_THRESHOLD = 30 # 角度阈值，用于过滤偏差过大的点
 
 var drawing_path = false
-var drawn_points = []
 var last_recorded_point: Vector2
 var last_record_time: float
 
@@ -56,50 +55,36 @@ func draw_map():
 			map_surface.set_cell(Vector2i(x - x_num, y - y_num), 1, Vector2i(tile_index / 2, 1 + tile_index / 4))
 
 func _input(event):
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_LEFT:
-			pass
-
-		elif event.button_index == MOUSE_BUTTON_RIGHT:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		if event.pressed:
+			var mouse_pos = get_global_mouse_position()
 			if Input.is_key_pressed(KEY_SHIFT):
-				if event.pressed:
-					print("Shift + Right mouse button pressed. Adding point to path.")
-					var mouse_pos = get_global_mouse_position()
-					drawn_points.append(mouse_pos)
-					last_recorded_point = mouse_pos
-					last_record_time = Time.get_ticks_usec() / 1000000.0
-					path_line.add_point(mouse_pos)
-					draw_point(mouse_pos)
-					following_path = false
-				else:
-					print("Shift + Right mouse button released. Sending path.")
-					path = process_line2d_points(drawn_points)
-					var simplified_points = douglas_peucker(path, 2)
-					# 取消平滑路径
-					if simplified_points.size() > 0:
-						path = simplified_points  # 更新本地路径
-						path_line.points = path  # 更新 Line2D 的路径
-						emit_signal("path_selected", path)  # 发送路径信号
-						following_path = false
-					print("Following path: %s" % following_path)
-					# 清除路径和点
-					drawn_points.clear()
-					path_line.clear_points()
-					for child in point_container.get_children():
-						child.queue_free()
-
+				if path.size() == 0:
+					path.append(team.position)
+					path_line.add_point(team.position)
+				path.append(mouse_pos)
+				path_line.add_point(mouse_pos)
+				print("Shift + Right mouse button pressed. Adding point to path.")
+				draw_point(mouse_pos)
+				following_path = false
 			else:
-				if event.pressed:
-					target_position = get_global_mouse_position()
-					path = [target_position]  # 右键单击将点击位置作为路径
-					path_line.points = path
-					emit_signal("path_selected", path)  # 发送路径信号
-					following_path = false
-					current_point_index = 0
-					print("Right mouse button pressed. Sending single point path.")
-
-	elif event is InputEventMouseMotion:
-		pass
+				print("one click clear path")
+				clear_path_line()
+				target_position = mouse_pos
+				draw_point(target_position)
+				path = [team.position, target_position]  # 右键单击将点击位置作为路径
+				path_line.clear_points()
+				for p in path:
+					path_line.add_point(p)
+				current_point_index = 0
+				emit_signal("path_selected", path)  # 发送路径信号
+				following_path = true
+				print("Right mouse button pressed. Sending single point path.")
+		else:
+			if Input.is_key_pressed(KEY_SHIFT) and path.size() > 1:
+				print("Shift + Right mouse button released. Sending path.", path)
+				emit_signal("path_selected", path)  # 发送路径信号
+				following_path = true
 
 func get_tile_index_from_noise(noise_value: float) -> int:
 	if noise_value < 0.2:
@@ -123,20 +108,13 @@ func _on_path_complated(index: int):
 	if index < path.size():
 		path = path.slice(index)  # 更新本地路径
 		path_line.points = path  # 更新 Line2D 的路径
+		if point_container.get_child_count() > 0:
+			var child = point_container.get_child(0)
+			child.queue_free()
+	else:
+		clear_path_line()
+		following_path = false
 	print("Current path line points in _physics_process:", path_line.points)
-
-func process_line2d_points(points):
-	path_line.clear_points()
-	for child in point_container.get_children():
-		child.queue_free()
-
-	var new_points = []
-	for point in points:
-		var rounded_point = point.round()
-		path_line.add_point(rounded_point)
-		new_points.append(rounded_point)
-		draw_point(rounded_point)
-	return new_points
 
 func draw_point(position: Vector2):
 	var circle = CircleShape2D.new()
@@ -146,46 +124,29 @@ func draw_point(position: Vector2):
 	collision_shape.position = position
 	point_container.add_child(collision_shape)
 
-# Douglas - Peucker 算法简化路径
-func douglas_peucker(points, epsilon):
-	var dmax = 0
-	var index = 0
-	for i in range(1, points.size() - 1):
-		var d = perpendicular_distance(points[i], points[0], points[points.size() - 1])
-		if d > dmax:
-			index = i
-			dmax = d
+func clear_path_line():
+	path.clear()
+	path_line.clear_points()
+	for child in point_container.get_children():
+		child.queue_free()
 
-	if dmax > epsilon:
-		var results1 = douglas_peucker(points.slice(0, index + 1), epsilon)
-		var results2 = douglas_peucker(points.slice(index, points.size()), epsilon)
-		results1.pop_back()
-		# 修改：使用 append_array 替代 extend
-		results1.append_array(results2)
-		return results1
-	else:
-		return [points[0], points[points.size() - 1]]
-
-# 计算点到直线的垂直距离
-func perpendicular_distance(point, start, end):
-	var numerator = abs((end.y - start.y) * point.x - (end.x - start.x) * point.y + end.x * start.y - end.y * start.x)
-	var denominator = sqrt(pow(end.y - start.y, 2) + pow(end.x - start.x, 2))
-	return numerator / denominator
-
-
-
-func select_node(node: Node):
-	if not selected_nodes.has(node):
-		selected_nodes.append(node)
-		# 查找子节点 Sprite2D 并设置选中效果
-		var sprite = node.get_node("Sprite2D")
-		if sprite:
-			sprite.modulate = Color(1, 0, 0)
-
-func deselect_all_nodes():
-	for node in selected_nodes:
-		var sprite = node.get_node("Sprite2D")
-		if sprite:
-			sprite.modulate = Color(1, 1, 1)
-	selected_nodes.clear()
-	
+func _physics_process(delta):
+	if following_path and path.size() > 0:
+		var current_point = path[current_point_index]
+		var distance = team.position.distance_to(current_point)
+		if distance < DISTANCE_THRESHOLD:
+			current_point_index += 1
+			if current_point_index < path.size():
+				path = path.slice(current_point_index)
+				path_line.points = path
+				if point_container.get_child_count() > 0:
+					var child = point_container.get_child(0)
+					child.queue_free()
+			else:
+				clear_path_line()
+				following_path = false
+	# 新增检查，避免越界
+	if current_point_index >= path.size():
+		current_point_index = 0
+		clear_path_line()
+		following_path = false    
