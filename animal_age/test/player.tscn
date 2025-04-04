@@ -1,0 +1,20 @@
+[gd_scene load_steps=4 format=3 uid="uid://dgmg4no14ws23"]
+
+[ext_resource type="Script" uid="uid://cfhg08hfrwa58" path="res://test/player.gd" id="1_qqgw4"]
+[ext_resource type="Texture2D" uid="uid://desiejihii0w8" path="res://assests/pic/npc/solider.png" id="1_s3mhm"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_qqgw4"]
+size = Vector2(16, 16)
+
+[node name="Player" type="CharacterBody2D"]
+script = ExtResource("1_qqgw4")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_qqgw4")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+visible = false
+texture = ExtResource("1_s3mhm")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+zoom = Vector2(4, 4)

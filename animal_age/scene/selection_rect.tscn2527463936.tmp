@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b5ub6bgw7ytal"]
+
+[ext_resource type="Script" uid="uid://blb8l8fwpjccj" path="res://script/selection_rect.gd" id="1_57kul"]
+
+[node name="SelectionRect" type="Node2D"]
+script = ExtResource("1_57kul")

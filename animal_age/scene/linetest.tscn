@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://cfxy5mhwycwx3"]
+
+[ext_resource type="Script" uid="uid://buos3i3vmfthj" path="res://script/linetest.gd" id="1_b8b8c"]
+
+[node name="Linetest" type="Node2D"]
+script = ExtResource("1_b8b8c")
+
+[node name="PointConatiner" type="Node2D" parent="."]
