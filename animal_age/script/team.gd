@@ -8,6 +8,7 @@ const JUMP_VELOCITY = -400.0
 var target_position
 var path = []
 var current_point_index = 0
+var total_index = 0
 
 @export_range(0, 1, 0.1) var pic_red: float = 1.0
 @export_range(0, 1, 0.1) var pic_green: float = 1.0
@@ -44,12 +45,12 @@ func _physics_process(delta):
 			var next_point = path[current_point_index]
 			var direction = (next_point - position).normalized()
 			#print("current points is ", path[current_point_index], " following is ",following_path, " index is ", current_point_index,"distance ",next_point - position)
-			if position.distance_to(next_point) > 2:
+			if position.distance_to(next_point) > 10:
 				velocity = direction * unit_speed
 			else:
+				print("经过点",current_point_index)
 				current_point_index += 1
 				emit_signal("path_complated", current_point_index)
-
 				if current_point_index >= path.size():
 					velocity = Vector2.ZERO
 					path = []

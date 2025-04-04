@@ -14,6 +14,7 @@ var x_num = Setting.win_x / 16
 var y_num = Setting.win_y / 16
 var target_position
 var path = []
+var save_path = []
 var following_path = false
 var current_point_index = 0
 
@@ -30,6 +31,13 @@ var is_dragging = false
 var drag_start: Vector2 = Vector2.ZERO
 var selected_nodes = []
 
+var current_pos:Vector2 = Vector2.ZERO
+var current_index = 0
+var npc_pos = Vector2(150,60)
+var line_continue = false
+var min_distance = 10
+var click_num = 0
+
 func _ready():
 	draw_map()
 	# 连接信号到 team 节点的相应方法
@@ -38,6 +46,7 @@ func _ready():
 	path_line.width = 2 
 	path_line.default_color = Color(0.82, 1, 0.3)
 	team.add_to_group("company_zero")
+
 
 func draw_map():
 	var noise = FastNoiseLite.new()
@@ -55,36 +64,81 @@ func draw_map():
 			map_surface.set_cell(Vector2i(x - x_num, y - y_num), 1, Vector2i(tile_index / 2, 1 + tile_index / 4))
 
 func _input(event):
-	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
-		if event.pressed:
-			var mouse_pos = get_global_mouse_position()
-			if Input.is_key_pressed(KEY_SHIFT):
-				if path.size() == 0:
-					path.append(team.position)
-					path_line.add_point(team.position)
-				path.append(mouse_pos)
-				path_line.add_point(mouse_pos)
-				print("Shift + Right mouse button pressed. Adding point to path.")
-				draw_point(mouse_pos)
-				following_path = false
+	if event is InputEventMouseButton:
+		if event.button_index == MOUSE_BUTTON_RIGHT:
+			if event.pressed:
+				path_line.set_visible(true)
+				current_pos = get_global_mouse_position()
+				if Input.is_key_pressed(KEY_SHIFT):
+					if not line_continue:
+						line_continue = true
+						clear_line_points()
+					
+					current_index = path.size()
+					if current_index == 0:
+						npc_pos = team.position
+						path.append(npc_pos)
+						save_path.append(npc_pos)
+						path_line.add_point(npc_pos)
+						current_index += 1
+					if current_pos.distance_to(path[current_index-1]) < min_distance:
+						print('extend distance')
+						return
+					path.append(current_pos)
+					save_path.append(current_pos)
+					#redraw_path_line()
+					path_line.add_point(current_pos)
+					draw_point(current_pos)
+					current_index += 1
+				else:
+					print("right button click")
+					line_continue = false
+					clear_line_points()
+					npc_pos = team.position
+					path.append(npc_pos)
+					path_line.add_point(npc_pos)
+					current_index += 1
+					if current_pos.distance_to(path[current_index-1]) < min_distance:
+							print('extend distance')
+							return
+					else:
+						path.append(current_pos)
+						path_line.add_point(current_pos)
+						draw_point(current_pos)
+						current_index += 1
 			else:
-				print("one click clear path")
-				clear_path_line()
-				target_position = mouse_pos
-				draw_point(target_position)
-				path = [team.position, target_position]  # 右键单击将点击位置作为路径
-				path_line.clear_points()
-				for p in path:
-					path_line.add_point(p)
-				current_point_index = 0
-				emit_signal("path_selected", path)  # 发送路径信号
-				following_path = true
-				print("Right mouse button pressed. Sending single point path.")
-		else:
-			if Input.is_key_pressed(KEY_SHIFT) and path.size() > 1:
-				print("Shift + Right mouse button released. Sending path.", path)
-				emit_signal("path_selected", path)  # 发送路径信号
-				following_path = true
+				emit_signal("path_selected",path.slice(1))
+				path_line.set_visible(false)
+	#if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_RIGHT:
+		#if event.pressed:
+			#var mouse_pos = get_global_mouse_position()
+			#if Input.is_key_pressed(KEY_SHIFT):
+				#if path.size() == 0:
+					#path.append(team.position)
+					#path_line.add_point(team.position)
+				#path.append(mouse_pos)
+				#path_line.add_point(mouse_pos)
+				#print("Shift + Right mouse button pressed. Adding point to path.")
+				#draw_point(mouse_pos)
+				#following_path = false
+			#else:
+				#print("one click clear path")
+				#clear_path_line()
+				#target_position = mouse_pos
+				#draw_point(target_position)
+				#path = [team.position, target_position]  # 右键单击将点击位置作为路径
+				#path_line.clear_points()
+				#for p in path:
+					#path_line.add_point(p)
+				#current_point_index = 0
+				#emit_signal("path_selected", path)  # 发送路径信号
+				#following_path = true
+				#print("Right mouse button pressed. Sending single point path.")
+		#else:
+			#if Input.is_key_pressed(KEY_SHIFT) and path.size() > 1:
+				#print("Shift + Right mouse button released. Sending path.", path)
+				#emit_signal("path_selected", path)  # 发送路径信号
+				#following_path = true
 
 func get_tile_index_from_noise(noise_value: float) -> int:
 	if noise_value < 0.2:
@@ -105,16 +159,25 @@ func get_tile_index_from_noise(noise_value: float) -> int:
 		return 7
 
 func _on_path_complated(index: int):
-	if index < path.size():
-		path = path.slice(index)  # 更新本地路径
-		path_line.points = path  # 更新 Line2D 的路径
-		if point_container.get_child_count() > 0:
-			var child = point_container.get_child(0)
-			child.queue_free()
-	else:
-		clear_path_line()
-		following_path = false
-	print("Current path line points in _physics_process:", path_line.points)
+	path = path.slice(1)
+	#if index < path.size():
+		#path = path.slice(index)  # 更新本地路径
+		#path_line.points = path  # 更新 Line2D 的路径
+		#if point_container.get_child_count() > 0:
+			#var child = point_container.get_child(0)
+			#child.queue_free()
+	#else:
+		#clear_path_line()
+		#following_path = false
+	#print("Current path line points in _physics_process:", path_line.points)
+
+func clear_line_points():
+	path.clear()
+	save_path.clear()
+	current_index = 0
+	path_line.clear_points()
+	for point in point_container.get_children():
+		point.queue_free()
 
 func draw_point(position: Vector2):
 	var circle = CircleShape2D.new()
@@ -149,4 +212,24 @@ func _physics_process(delta):
 	if current_point_index >= path.size():
 		current_point_index = 0
 		clear_path_line()
-		following_path = false    
+		following_path = false
+	if line_continue:
+		redraw_path_line()
+
+
+func redraw_path_line():
+	#clear_line_points()
+
+	#path = path.slice(team.current_point_index)
+	path[0] = team.position
+	path_line.points = path
+	for i in range(current_index):
+		if point_container.get_child_count() > 0:
+			var child = point_container.get_child(0)
+			child.queue_free()
+	#path.append(team.position)
+	#path += team.path.slice(team.current_point_index)
+	#for point in path:
+		#path_line.add_point(point)
+		#draw_point(point)
+	
